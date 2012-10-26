@@ -17,22 +17,31 @@ def switch_case(text):
         Если текст состоит из букв, цифр и начинается на большую букву,
             то это camel_c. Сamel_c переключаем в underscore.
     '''
-    if re.match(r"^[a-z][A-Za-z0-9]+$", text):
+    if re.match(r"^_*[a-z][A-Za-z0-9]+_*$", text):
         return switch_case_to_camel_c_case(text)
-    elif re.match(r"^[A-Z][A-Za-z0-9]+$", text):
+    elif re.match(r"^_*[A-Z][A-Za-z0-9]+_*$", text):
         return switch_case_to_underscore_case(text)
-    elif re.match(r"^[a-z][a-z0-9_]+$", text):
+    elif re.match(r"^_*[a-z][a-z0-9_]+_*$", text):
         return switch_case_to_camel_f_case(text)
     else:
         raise UnknownCase
 
+def ignor_first_last_underscore(f):
+    def wrapper(text):
+        rep = lambda m: m.group(1) + f(m.group(2)) + m.group(3)
+        return re.sub(r"^(_*)(\w+)(_*)$", rep, text)
+    return wrapper
+
+@ignor_first_last_underscore
 def switch_case_to_underscore_case(text):
     rep = lambda m: (m.group(1) and m.group(1) + '_') + m.group(2).lower()
     return re.sub(r"(^|[a-z0-9])([A-Z]+)", rep, text)
 
+@ignor_first_last_underscore
 def switch_case_to_camel_f_case(text):
     return re.sub(r"_([a-z0-9])", lambda m: m.group(1).capitalize(), text)
 
+@ignor_first_last_underscore
 def switch_case_to_camel_c_case(text):
     return re.sub(r"^([a-z0-9])", lambda m: m.group(1).capitalize(), text)
 
